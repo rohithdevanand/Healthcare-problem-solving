@@ -1,15 +1,15 @@
 import React, { useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
 import AddressInput from "../../components/AddressInput";
-import "../AuthForm.css"; // Shared CSS for auth forms
+import "../AuthForm.css"; // Shared CSS
 
 const PatientSignIn = () => {
   const [formData, setFormData] = useState({
     name: "",
+    email: "", // Added email
     password: "",
     confirmPassword: "",
-    gender: "",
   });
   const [address, setAddress] = useState({
     doorNumber: "",
@@ -18,11 +18,11 @@ const PatientSignIn = () => {
     state: "",
     pincode: "",
   });
+  const [gender, setGender] = useState("");
   const [error, setError] = useState("");
   const { signIn } = useContext(AuthContext);
-  const navigate = useNavigate();
 
-  const { name, password, confirmPassword, gender } = formData;
+  const { name, email, password, confirmPassword } = formData;
 
   const onChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -33,11 +33,14 @@ const PatientSignIn = () => {
       setError("Passwords do not match");
       return;
     }
+    if (!gender) {
+      setError("Please select a gender");
+      return;
+    }
     try {
-      await signIn({ name, password, gender, address }, "patient");
-      // Navigate to dashboard is handled by AuthContext
+      await signIn({ name, email, password, address, gender }, "patient");
     } catch (err) {
-      setError(err.response.data.message || "Sign-in failed");
+      setError(err.response?.data?.message || "Sign-in failed");
     }
   };
 
@@ -52,6 +55,16 @@ const PatientSignIn = () => {
             type="text"
             name="name"
             value={name}
+            onChange={onChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Email</label>
+          <input
+            type="email"
+            name="email"
+            value={email}
             onChange={onChange}
             required
           />
@@ -78,7 +91,12 @@ const PatientSignIn = () => {
         </div>
         <div>
           <label>Gender</label>
-          <select name="gender" value={gender} onChange={onChange} required>
+          <select
+            name="gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            required
+          >
             <option value="">Select Gender</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>

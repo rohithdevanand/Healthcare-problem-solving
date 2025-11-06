@@ -5,7 +5,13 @@ const PatientSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true,
+    // unique: false, // Name should not be unique
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true, // Email must be unique
+    lowercase: true,
   },
   password: {
     type: String,

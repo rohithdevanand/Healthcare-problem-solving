@@ -1,25 +1,17 @@
 import React, { useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
-import AddressInput from "../../components/AddressInput";
-import "../AuthForm.css"; // Shared CSS for auth forms
+import "../AuthForm.css"; // Shared CSS
 
 const PatientLogin = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    email: "", // Changed from 'name'
     password: "",
-  });
-  const [address, setAddress] = useState({
-    doorNumber: "",
-    mainAddress: "",
-    city: "",
-    state: "",
-    pincode: "",
   });
   const [error, setError] = useState("");
   const { login } = useContext(AuthContext);
 
-  const { name, password } = formData;
+  const { email, password } = formData; // Changed from 'name'
 
   const onChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,10 +19,9 @@ const PatientLogin = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login({ name, password, address }, "patient");
-      // Navigate to dashboard is handled by AuthContext
+      await login({ email, password }, "patient"); // Send email
     } catch (err) {
-      setError(err.response.data.message || "Login failed");
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 
@@ -40,11 +31,11 @@ const PatientLogin = () => {
         <h2>Patient Login</h2>
         {error && <p className="error">{error}</p>}
         <div>
-          <label>Name</label>
+          <label>Email</label>
           <input
-            type="text"
-            name="name"
-            value={name}
+            type="email"
+            name="email"
+            value={email}
             onChange={onChange}
             required
           />
@@ -59,7 +50,6 @@ const PatientLogin = () => {
             required
           />
         </div>
-        <AddressInput address={address} setAddress={setAddress} />
         <button type="submit">Login</button>
         <p>
           Don't have an account? <Link to="/patient/signin">Sign In</Link>

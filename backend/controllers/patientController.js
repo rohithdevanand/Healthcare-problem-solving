@@ -4,24 +4,25 @@ import jwt from "jsonwebtoken";
 // Sign In (Register)
 const signIn = async (req, res) => {
   try {
-    const { name, password, address, gender } = req.body;
+    const { name, email, password, address, gender } = req.body;
 
     // Validate required fields
-    if (!name || !password || !address || !gender) {
+    if (!name || !email || !password || !address || !gender) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check if patient already exists
-    const existingPatient = await Patient.findOne({ name });
+    // Check if patient already exists by EMAIL
+    const existingPatient = await Patient.findOne({ email });
     if (existingPatient) {
       return res
         .status(400)
-        .json({ message: "Patient with this name already exists" });
+        .json({ message: "Patient with this email already exists" });
     }
 
     // Create new patient
     const patient = new Patient({
       name,
+      email, // Add email
       password,
       address,
       gender,
@@ -49,16 +50,17 @@ const signIn = async (req, res) => {
 // Login
 const login = async (req, res) => {
   try {
-    const { name, password, address } = req.body;
+    // Login with EMAIL and password
+    const { email, password } = req.body;
 
-    if (!name || !password || !address) {
+    if (!email || !password) {
       return res
         .status(400)
-        .json({ message: "Name, password, and address are required" });
+        .json({ message: "Email and password are required" });
     }
 
-    // Find patient
-    const patient = await Patient.findOne({ name });
+    // Find patient by EMAIL
+    const patient = await Patient.findOne({ email });
     if (!patient) {
       return res.status(400).json({ message: "Patient not found" });
     }
