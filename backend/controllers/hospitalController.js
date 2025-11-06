@@ -97,4 +97,55 @@ const getProfile = async (req, res) => {
   }
 };
 
-export default { signIn, login, getProfile };
+// Update Hospital Profile (for Inventory)
+const updateProfile = async (req, res) => {
+  try {
+    const { bloodBank, oxygenStatus } = req.body;
+
+    const hospital = await Hospital.findById(req.userId);
+    if (!hospital) {
+      return res.status(404).json({ message: "Hospital not found" });
+    }
+
+    // Update the fields
+    if (bloodBank) {
+      hospital.bloodBank = bloodBank;
+    }
+    if (oxygenStatus) {
+      hospital.oxygen.status = oxygenStatus;
+    }
+
+    const updatedHospital = await hospital.save();
+    
+    // Emit a real-time update to all clients
+    req.io.emit("inventoryUpdated", updatedHospital);
+
+    res.json({
+      message: "Profile updated successfully",
+      hospital: updatedHospital,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// --- NEW FUNCTION ---
+// Get All Hospitals (for patient-facing list)
+const getAllHospitals = async (req, res) => {
+  try {
+    // Find all hospitals and exclude their passwords
+    const hospitals = await Hospital.find().select("-password");
+    res.json(hospitals);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export default { 
+  signIn, 
+  login, 
+  getProfile, 
+  updateProfile,
+  getAllHospitals // Add getAllHospitals
+};

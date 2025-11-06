@@ -18,6 +18,29 @@ const HospitalSchema = new mongoose.Schema({
     state: String,
     pincode: String,
   },
+  // --- NEW FIELDS ---
+  bloodBank: {
+    type: Map,
+    of: Number,
+    default: {
+      "A+": 0,
+      "A-": 0,
+      "B+": 0,
+      "B-": 0,
+      "AB+": 0,
+      "AB-": 0,
+      "O+": 0,
+      "O-": 0,
+    },
+  },
+  oxygen: {
+    status: {
+      type: String,
+      enum: ["Available", "Not Available"],
+      default: "Not Available",
+    },
+  },
+  // --- END NEW FIELDS ---
   createdAt: {
     type: Date,
     default: Date.now,

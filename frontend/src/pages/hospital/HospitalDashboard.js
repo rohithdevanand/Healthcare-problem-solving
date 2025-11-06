@@ -17,6 +17,13 @@ const HospitalDashboard = () => {
           <NavLink to="/hospital/dashboard/doctors">
             Manage Doctors
           </NavLink>
+          {/* --- NEW LINKS --- */}
+          <NavLink to="/hospital/dashboard/inventory">
+            Manage Inventory
+          </NavLink>
+          <NavLink to="/hospital/dashboard/resources">
+            Resources
+          </NavLink>
         </nav>
       </aside>
       <main className="hospital-content">

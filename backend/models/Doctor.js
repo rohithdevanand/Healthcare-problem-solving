@@ -13,7 +13,7 @@ const DoctorSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  price: {
+  consultancyFee: { // Renamed from 'price'
     type: Number,
     required: true,
   },
@@ -24,7 +24,7 @@ const DoctorSchema = new mongoose.Schema({
   },
   rating: {
     type: Number,
-    default: 4.5,
+    default: 0, // Default to 0, will be calculated
   },
   createdAt: {
     type: Date,

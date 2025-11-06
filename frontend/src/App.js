@@ -16,7 +16,7 @@ import PatientDashboard from "./pages/patient/PatientDashboard";
 import AiConsult from "./pages/patient/AiConsult";
 import BookAppointment from "./pages/patient/BookAppointment";
 import MyBookings from "./pages/patient/MyBookings";
-import Resources from "./pages/patient/Resources";
+import FindHospitals from "./pages/patient/FindHospitals"; // --- IMPORT NEW PAGE ---
 
 // Hospital Pages
 import HospitalLogin from "./pages/hospital/HospitalLogin";
@@ -24,6 +24,8 @@ import HospitalSignIn from "./pages/hospital/HospitalSignIn";
 import HospitalDashboard from "./pages/hospital/HospitalDashboard";
 import DoctorManagement from "./pages/hospital/DoctorManagement";
 import AppointmentRequests from "./pages/hospital/AppointmentRequests";
+import Resources from "./pages/hospital/Resources"; 
+import InventoryManagement from "./pages/hospital/InventoryManagement"; 
 
 function App() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -85,11 +87,12 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* --- ADD NEW ROUTE --- */}
         <Route
-          path="/patient/resources"
+          path="/patient/find-hospitals"
           element={
             <ProtectedRoute userType="patient">
-              <Resources />
+              <FindHospitals />
             </ProtectedRoute>
           }
         />
@@ -103,10 +106,11 @@ function App() {
             </ProtectedRoute>
           }
         >
-          {/* Default child route for dashboard */}
           <Route index element={<AppointmentRequests />} /> 
           <Route path="appointments" element={<AppointmentRequests />} />
           <Route path="doctors" element={<DoctorManagement />} />
+          <Route path="resources" element={<Resources />} />
+          <Route path="inventory" element={<InventoryManagement />} />
         </Route>
         
         {/* Fallback for unknown routes */}

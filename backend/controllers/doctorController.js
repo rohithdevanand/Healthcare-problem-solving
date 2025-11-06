@@ -1,4 +1,5 @@
 import Doctor from "../models/Doctor.js";
+import Hospital from "../models/Hospital.js"; // Import Hospital model for location search
 
 // Add Doctor
 const addDoctor = async (req, res) => {
@@ -28,11 +29,44 @@ const addDoctor = async (req, res) => {
   }
 };
 
-// Get All Doctors
+// --- MODIFIED FUNCTION ---
+// Get All Doctors (with filtering)
 const getAllDoctors = async (req, res) => {
   try {
-    const doctors = await Doctor.find().populate("hospitalId");
+    const { search, rating, location } = req.query;
+    let filter = {};
+    
+    // 1. Location Filter (if provided)
+    if (location) {
+      // Find hospitals that match the location query (city or pincode)
+      const locationRegex = new RegExp(location, 'i');
+      const matchingHospitals = await Hospital.find({
+        $or: [
+          { "address.city": locationRegex },
+          { "address.pincode": locationRegex }
+        ]
+      }).select("_id"); // Only select their IDs
+
+      const hospitalIds = matchingHospitals.map(h => h._id);
+
+      // Add to doctor filter
+      filter.hospitalId = { $in: hospitalIds };
+    }
+
+    // 2. Rating Filter (if provided)
+    if (rating) {
+      filter.rating = { $gte: Number(rating) };
+    }
+
+    // 3. Search (Name) Filter (if provided)
+    if (search) {
+      filter.name = { $regex: search, $options: 'i' }; // Case-insensitive regex
+    }
+
+    // Find doctors matching the combined filter
+    const doctors = await Doctor.find(filter).populate("hospitalId");
     res.json(doctors);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -1,110 +1,90 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../../services/api";
-import AuthContext from "../../context/AuthContext";
 import DoctorCard from "../../components/DoctorCard";
+import "./BookAppointment.css"; // We'll create this file
 
 const BookAppointment = () => {
-  const [allDoctors, setAllDoctors] = useState([]);
-  const [filteredDoctors, setFilteredDoctors] = useState([]);
-  const [searchParams, setSearchParams] = useState({
-    doctorName: "",
-    disease: "", // Note: disease is not a search param in backend
-    budget: "",
-  });
+  const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { user } = useContext(AuthContext); // Get patient's pincode
 
-  // Load all doctors on component mount
+  // State for filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [rating, setRating] = useState("");
+  const [location, setLocation] = useState("");
+
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await api.get("/doctor"); // Gets all doctors
-        setAllDoctors(res.data);
-        setFilteredDoctors(res.data); // Initially, show all
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to fetch doctors.");
-        setLoading(false);
-      }
-    };
     fetchDoctors();
-  }, []);
+  }, []); // Fetch all on initial load
 
-  const handleChange = (e) => {
-    setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
+  const fetchDoctors = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
+      if (rating) params.rating = rating;
+      if (location) params.location = location;
+
+      const res = await api.get("/doctor", { params });
+      setDoctors(res.data);
+    } catch (err) {
+      setError("Failed to fetch doctors.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSearch = (e) => {
+  const handleFilterSubmit = (e) => {
     e.preventDefault();
-    let { doctorName, budget } = searchParams;
-    let patientPincode = user?.address?.pincode;
-
-    let tempFiltered = [...allDoctors];
-
-    // Filter by name (optional)
-    if (doctorName) {
-      tempFiltered = tempFiltered.filter((doc) =>
-        doc.name.toLowerCase().includes(doctorName.toLowerCase())
-      );
-    }
-
-    // Filter by budget (optional)
-    if (budget) {
-      tempFiltered = tempFiltered.filter((doc) => doc.price <= parseInt(budget));
-    }
-
-    // **Sort** by nearest pincode (as requested)
-    if (patientPincode) {
-      tempFiltered.sort((a, b) => {
-        let pincodeA = a.hospitalId?.address?.pincode;
-        let pincodeB = b.hospitalId?.address?.pincode;
-
-        if (pincodeA === patientPincode && pincodeB !== patientPincode) {
-          return -1; // a (match) comes before b (no match)
-        }
-        if (pincodeA !== patientPincode && pincodeB === patientPincode) {
-          return 1; // b comes before a
-        }
-        return 0; // Keep original order if both match or neither match
-      });
-    }
-
-    setFilteredDoctors(tempFiltered);
+    fetchDoctors();
   };
 
-  if (loading) return <div>Loading doctors...</div>;
-  if (error) return <div className="error">{error}</div>;
+  const clearFilters = () => {
+    setSearchTerm("");
+    setRating("");
+    setLocation("");
+    // Re-fetch all doctors
+    fetchDoctors();
+  };
+
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className="book-appointment-container">
       <h2>Book an Appointment</h2>
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+      
+      <form onSubmit={handleFilterSubmit} className="filter-form">
         <input
           type="text"
-          name="doctorName"
-          placeholder="Doctor Name (optional)"
-          value={searchParams.doctorName}
-          onChange={handleChange}
+          placeholder="Search by doctor's name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
         <input
-          type="number"
-          name="budget"
-          placeholder="Max Budget (optional)"
-          value={searchParams.budget}
-          onChange={handleChange}
+          type="text"
+          placeholder="Search by city or pincode..."
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
         />
+        <select value={rating} onChange={(e) => setRating(e.target.value)}>
+          <option value="">Any Rating</option>
+          <option value="4.5">4.5+ Stars</option>
+          <option value="4">4+ Stars</option>
+          <option value="3">3+ Stars</option>
+        </select>
         <button type="submit">Search</button>
+        <button type="button" onClick={clearFilters}>Clear Filters</button>
       </form>
 
       <div className="doctor-list">
-        {filteredDoctors.length > 0 ? (
-          filteredDoctors.map((doctor) => (
-            <DoctorCard key={doctor._id} doctor={doctor} />
-          ))
-        ) : (
+        {loading && <p>Loading doctors...</p>}
+        {error && <p className="error">{error}</p>}
+        {!loading && doctors.length === 0 && (
           <p>No doctors found matching your criteria.</p>
         )}
+        {doctors.map((doctor) => (
+          <DoctorCard key={doctor._id} doctor={doctor} />
+        ))}
       </div>
     </div>
   );
